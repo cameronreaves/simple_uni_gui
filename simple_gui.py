@@ -3,7 +3,7 @@ import random
 
 
 #Set Rules
-start_hand = 3
+start_hand = 1
 card_types = [1, 2, 3, 4, 5]
 size = 100
 
@@ -202,15 +202,28 @@ class Stable:
 def update_hands(i, player):
     #first player in the player list assigned to hand 1
     if i == 0:
-        j = 1
+        j = 0
         for card in player.get_hand():
             window['h_1' + str(j)].update([str(card)])
-            j = j + 1
+            j+=1
     else:
-        j = 1
+        j = 0
         for card in player.get_hand():
             window['h_2' + str(j)].update([str(card)])
-            j = j + 1
+            j+=1
+
+def update_stable(i, player):
+    #first player in the player list assigned to hand 1
+    if i == 0:
+        j = 0
+        for card in player.my_stable.stable:
+            window['st_1' + str(j)].update([str(card)])
+            j+=1
+    else:
+        j = 0
+        for card in player.my_stable.stable:
+            window['st_2' + str(j)].update([str(card)])
+            j += 1
 
 
 
@@ -237,11 +250,11 @@ instant = False
 ##Layout of GUI
 num = 5
 
-stable_1 = [[sg.Text("",size=(10,1), key="st_1" + str(i))] for i in range(1, num)]
-stable_2 = [[sg.Text("",size=(10,1), key="st_2" + str(i))] for i in range(1, num)]
+stable_1 = [[sg.Text("",size=(10,1), key="st_1" + str(i))] for i in range(0, num)]
+stable_2 = [[sg.Text("",size=(10,1), key="st_2" + str(i))] for i in range(0, num)]
 
-hand_1 = [[sg.Text("",size=(10,1), key="h_1" + str(i))] for i in range(1, num)]
-hand_2= [[sg.Text("",size=(10,1), key="h_2" + str(i))] for i in range(1, num)]
+hand_1 = [[sg.Text("",size=(10,1), key="h_1" + str(i))] for i in range(0, num)]
+hand_2= [[sg.Text("",size=(10,1), key="h_2" + str(i))] for i in range(0, num)]
 
 
 col = [
@@ -262,7 +275,7 @@ layout = [
            sg.Frame('HAND 2', hand_2, font='Any 12', title_color='blue'),
          sg.Text("It's Your Turn, Naomi", size=(15,1))],
 
-        [sg.Button('Press Start', key = "-START-"),sg.Text(" ", key="-MSG-") ]
+        [sg.Button('Press Start / Next Turn', key = "-START-"),sg.Text("Text will appear here",size=(15,1), key="-MSG-")]
          ]
 
 window = sg.Window('Unicorns GUI', layout, font=("Helvetica", 12))
@@ -279,6 +292,8 @@ while(run):  # Event Loop
             event, values = window.read()
             ply = players[i]
             print(ply)
+            if (new_turn and len(ply.get_hand()) < 5):
+                ply.draw_deck()
             ply.show_hand()
             update_hands(i, ply)
             #checks if button / exit clicked
@@ -289,17 +304,24 @@ while(run):  # Event Loop
                 suc = ply.put_stable("Unicorn")
                 if suc:
                     #display unicorn on the board
-                    window['st_11'].update(["Unicorn"])
+                    update_stable(i, ply)
                     turn = False
-                    break
                 else:
                     window['-MSG-'].update(["Card not in your hand"])
                     new_turn = False
+            #If player presses magic button
             if event == '-MAG-':
-                # Update the "output" text element to be the value of "input" element
-                window['st_11'].update("Gone")
-                turn = False
-                break
+                suc = ply.put_stable("Magic")
+                print(suc)
+                if suc:
+                    # display unicorn on the board
+                    update_stable(i, ply)
+                    turn = False
+                else:
+                    window['-MSG-'].update(["Card not in your hand"])
+                    new_turn = False
+                    print(new_turn)
+        print(i)
 
 window.close()
 
